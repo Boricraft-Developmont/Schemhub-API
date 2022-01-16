@@ -1,5 +1,11 @@
 <?php
+    include_once '../config/getAuthor.php';
+
+
 class Post {
+    
+
+
     // DB stuff
     private $conn;
     private $table = 'schematics';
@@ -10,7 +16,6 @@ class Post {
     public $description;
     public $category;
     public $version;
-    public $download;
     public $images;
     public $author;
     public $created_at;
@@ -32,7 +37,6 @@ class Post {
                 p.name,
                 p.description,
                 p.author,
-                p.download,
                 p.images,
                 p.version,
                 p.created_at,
@@ -50,5 +54,113 @@ class Post {
 
         return $stmt;
 
+    }
+
+    // Get single post
+    public function read_single() {
+        // Query
+        $query = 'SELECT
+            p.category,
+            p.id,
+            p.name,
+            p.description,
+            p.author,
+            p.images,
+            p.version,
+            p.created_at,
+            p.edited_at
+            FROM ' . $this->table . ' p 
+            WHERE p.id = ?
+            LIMIT 0,1';
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Bind id
+        $stmt->bindParam(1, $this->id);
+
+        // Execute
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Set props
+        $this->id = $row['id'];
+        $this->name = $row['name'];
+        $this->desc = $row['description'];
+        $this->author = $row['author'];
+        $this->category = $row['category'];
+        $this->download = $row['id'];
+        $this->images = $row['images'];
+        $this->createdAt = $row['created_at'];
+        $this->version = $row['version'];
+
+        
+    }
+
+    // Create Post
+    public function createBase(){
+        require('../../config/getAuthor.php');
+
+        //Get token
+        $headers = apache_request_headers();
+        // Create query
+        $query = 'INSERT INTO ' . $this->table . ' SET author = :author';
+           
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $this->author = htmlspecialchars(strip_tags(getAuthor($headers['token'])));
+
+        // Bind data
+        $stmt->bindParam(':author', $this->author);
+
+        if($stmt->execute()) {
+            return $this->conn->lastInsertId();
+        }else{
+
+            printf("Error: %s.\n", $stmt->error);
+            
+            return false;
+        }
+    }
+
+
+    public function create(){
+        require('../../config/getAuthor.php');
+
+        //Get token
+        $headers = apache_request_headers();
+        // Create query
+        $query = 'UPDATE ' . $this->table . ' SET name = :name, description = :desc, category = :category, version = :version, images = :images WHERE id = :id';
+           
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $this->name = htmlspecialchars(strip_tags($this->name));
+        $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->category = htmlspecialchars(strip_tags($this->category));
+        $this->version = htmlspecialchars(strip_tags($this->version));
+        $this->images = htmlspecialchars(strip_tags($this->images));
+
+        // Bind data
+
+        $stmt->bindParam(':name', $this->name);
+        $stmt->bindParam(':desc', $this->description);
+        $stmt->bindParam(':category', $this->category);
+        $stmt->bindParam(':version', $this->version);
+        $stmt->bindParam(':images', $this->images);
+        $stmt->bindParam(':id', $this->id);
+
+        if($stmt->execute()) {
+            return true;
+        }else{
+
+            printf("Error: %s.\n", $stmt->error);
+            
+            return false;
+        }
     }
 }
