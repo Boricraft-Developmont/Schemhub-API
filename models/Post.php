@@ -209,4 +209,21 @@ class Post {
             }
         }
     }
+
+    public function searchPosts(){
+        // Clean data
+        $this->name = htmlspecialchars(strip_tags($this->name));
+
+        // Create query
+        $query = "SELECT * FROM schematics WHERE name LIKE '%". $this->name ."%'";
+
+        //Prepare Statement
+        $stmt = $this->conn->prepare($query);
+
+        // Execute
+        $stmt->execute();
+
+        return $stmt;
+
+    }
 }
