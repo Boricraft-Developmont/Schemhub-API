@@ -111,17 +111,21 @@ class Post {
 
         // Clean data
         $this->author = htmlspecialchars(strip_tags(getAuthor($headers['token'])));
-
-        // Bind data
-        $stmt->bindParam(':author', $this->author);
-
-        if($stmt->execute()) {
-            return $this->conn->lastInsertId();
-        }else{
-
-            printf("Error: %s.\n", $stmt->error);
-            
+        //check for user
+        if($this->author == false) {
             return false;
+        }else{
+            // Bind data
+            $stmt->bindParam(':author', $this->author);
+
+            if($stmt->execute()) {
+                return $this->conn->lastInsertId();
+            }else{
+
+                printf("Error: %s.\n", $stmt->error);
+                
+                return false;
+            }
         }
     }
 
@@ -132,7 +136,7 @@ class Post {
         //Get token
         $headers = apache_request_headers();
         // Create query
-        $query = 'UPDATE ' . $this->table . ' SET name = :name, description = :desc, category = :category, version = :version, images = :images WHERE id = :id';
+        $query = 'UPDATE ' . $this->table . ' SET name = :name, description = :desc, category = :category, version = :version, images = :images WHERE id = :id AND author = :author';
            
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -140,27 +144,69 @@ class Post {
         // Clean data
         $this->id = htmlspecialchars(strip_tags($this->id));
         $this->name = htmlspecialchars(strip_tags($this->name));
+        $this->author = htmlspecialchars(strip_tags(getAuthor($headers['token'])));
         $this->description = htmlspecialchars(strip_tags($this->description));
         $this->category = htmlspecialchars(strip_tags($this->category));
         $this->version = htmlspecialchars(strip_tags($this->version));
         $this->images = htmlspecialchars(strip_tags($this->images));
 
-        // Bind data
-
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':desc', $this->description);
-        $stmt->bindParam(':category', $this->category);
-        $stmt->bindParam(':version', $this->version);
-        $stmt->bindParam(':images', $this->images);
-        $stmt->bindParam(':id', $this->id);
-
-        if($stmt->execute()) {
-            return true;
+        if($this->author == false){
+            return false;
         }else{
 
-            printf("Error: %s.\n", $stmt->error);
-            
+            // Bind data
+
+            $stmt->bindParam(':name', $this->name);
+            $stmt->bindParam(':desc', $this->description);
+            $stmt->bindParam(':category', $this->category);
+            $stmt->bindParam(':version', $this->version);
+            $stmt->bindParam(':images', $this->images);
+            $stmt->bindParam(':author', $this->author);
+            $stmt->bindParam(':id', $this->id);
+
+            if($stmt->execute()) {
+                return true;
+            }else{
+
+                printf("Error: %s.\n", $stmt->error);
+                
+                return false;
+            }
+        }
+    }
+
+    public function delete(){
+        require('../../config/getAuthor.php');
+
+        //Get token
+        $headers = apache_request_headers();
+        // Create query
+        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND author = :author';
+           
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $this->author = htmlspecialchars(strip_tags(getAuthor($headers['token'])));
+
+        if($this->author == false){
             return false;
+        }else{
+
+            // Bind data
+
+            $stmt->bindParam(':author', $this->author);
+            $stmt->bindParam(':id', $this->id);
+
+            if($stmt->execute()) {
+                return true;
+            }else{
+
+                printf("Error: %s.\n", $stmt->error);
+                
+                return false;
+            }
         }
     }
 }

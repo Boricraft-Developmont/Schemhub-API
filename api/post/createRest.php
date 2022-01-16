@@ -18,13 +18,13 @@
     // Get raw posted data
     $data = json_decode(file_get_contents("php://input"));
 
-
+    $post->id = $data->id;
     $post->name = $data->name;
     $post->description = $data->description;
     $post->images = $data->images;
     $post->version = $data->version;
     $post->category = $data->category;
-    $post->id = $data->id;
+
 
     // Create post
     if($post->create()) {
