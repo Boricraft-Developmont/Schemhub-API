@@ -32,7 +32,7 @@
                 'desc' => $description,
                 'author' => $author,
                 'category' => $category,
-                'download' => $download,
+                'download' => $id,
                 'images' => $images,
                 'createdAt' => $created_at,
                 'version' => $version
